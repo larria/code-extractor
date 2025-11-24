@@ -5,11 +5,11 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { Detector } from './core/Detector.js';
 // 暂时导入一个空的 Scanner，下一步我们再具体实现它
-import { Scanner } from './core/Scanner.js'; 
+import { Scanner } from './core/Scanner.js';
 
 export async function run(targetDir) {
   const absolutePath = path.resolve(targetDir);
-  
+
   if (!fs.existsSync(absolutePath)) {
     console.error(chalk.red(`错误: 目录不存在 -> ${absolutePath}`));
     process.exit(1);
@@ -55,24 +55,31 @@ export async function run(targetDir) {
       }
     ]);
     projectType = manualSelect.type;
-    
+
     // 如果用户手动切换了类型，我们需要重新获取对应的策略实例
     // 简单起见，这里我们重新实例化一个 Detector 来查找对应的策略
     // (实际工程中可以将 strategy map 暴露出来直接获取)
     const allStrategies = detector.strategies;
     strategy = allStrategies.find(s => s.type === projectType);
-    
+
     // 如果手动选的类型没有对应的策略类（比如 'unknown' 或尚未实现的），则使用 BaseStrategy 兜底
     if (!strategy) {
-        const { default: BaseStrategy } = await import('./strategies/BaseStrategy.js');
-        strategy = new BaseStrategy();
-        // 强行覆盖 type 以便输出文件名正确
-        Object.defineProperty(strategy, 'type', { get: () => projectType });
+      const { default: BaseStrategy } = await import('./strategies/BaseStrategy.js');
+      strategy = new BaseStrategy();
+      // 强行覆盖 type 以便输出文件名正确
+      Object.defineProperty(strategy, 'type', { get: () => projectType });
+    }
+  } else if (!strategy) {
+    // 如果用户确认了自动检测结果（比如 unknown），但 strategy 为空，也需要兜底
+    const { default: BaseStrategy } = await import('./strategies/BaseStrategy.js');
+    strategy = new BaseStrategy();
+    if (projectType === 'unknown') {
+      Object.defineProperty(strategy, 'type', { get: () => 'unknown' });
     }
   }
 
   console.log(chalk.blue(`\n准备开始扫描 (${projectType})...`));
-  
+
   // 4. 启动扫描 (Scanner 部分将在下一步详细实现)
   const scanner = new Scanner(absolutePath, strategy);
   await scanner.run();

@@ -4,6 +4,7 @@ import path from 'path';
 import ignore from 'ignore';
 import chalk from 'chalk';
 import { Processor } from './Processor.js';
+import { MediaCollector } from './MediaCollector.js';
 
 export class Scanner {
   /**
@@ -14,12 +15,14 @@ export class Scanner {
     this.rootDir = rootDir;
     this.strategy = strategy;
     this.processor = new Processor();
+    this.mediaCollector = new MediaCollector();
     this.ig = ignore();
-    
+
     // 输出相关
     this.treeBuffer = ''; // 存储目录树字符串
+    this.mediaBuffer = ''; // 存储媒体资源统计字符串
     this.contentBuffer = ''; // 存储文件内容字符串
-    
+
     // 阈值
     this.MAX_DIR_ITEMS = 100; // 目录内超过100项触发折叠
     this.KEEP_DIR_ITEMS = 3;  // 折叠后保留3项
@@ -54,7 +57,7 @@ export class Scanner {
     this.ig.add(this.strategy.defaultIgnores);
     // 添加策略特定忽略
     this.ig.add(this.strategy.getIgnoreList());
-    
+
     // 尝试读取 .gitignore
     const gitIgnorePath = path.join(this.rootDir, '.gitignore');
     if (await fs.pathExists(gitIgnorePath)) {
@@ -78,7 +81,7 @@ export class Scanner {
     try {
       entries = await fs.readdir(currentDir, { withFileTypes: true });
     } catch (e) {
-      this.treeBuffer += `${prefix}└── [读取失败: ${e.message}]\n`;
+      this.treeBuffer += `${prefix}└──[读取失败: ${e.message}]\n`;
       return;
     }
 
@@ -90,10 +93,17 @@ export class Scanner {
       // ignore 库对于目录通常需要以 / 结尾或者不需要，取决于配置，但通常直接传相对路径即可
       // 为了稳妥，如果是目录，我们在判断时可以尝试两种形式
       if (entry.isDirectory()) {
-          return !this.ig.ignores(relativePath) && !this.ig.ignores(relativePath + '/');
+        return !this.ig.ignores(relativePath) && !this.ig.ignores(relativePath + '/');
       }
       return !this.ig.ignores(relativePath);
     });
+
+    // 1.5 收集媒体资源信息
+    const relativeDirPath = path.relative(this.rootDir, currentDir);
+    const mediaInfo = await this.mediaCollector.processDirectory(currentDir, relativeDirPath, filteredEntries);
+    if (mediaInfo) {
+      this.mediaBuffer += mediaInfo;
+    }
 
     // 2. 排序：目录在前，文件在后，按名称排序
     filteredEntries.sort((a, b) => {
@@ -118,11 +128,11 @@ export class Scanner {
       const isLast = (i === displayEntries.length - 1) && !isPruned; // 如果被裁剪了，最后一个不是真最后
       const suffix = isLast ? '└── ' : '├── ';
       const nextPrefix = prefix + (isLast ? '    ' : '│   ');
-      
+
       const absolutePath = path.join(currentDir, entry.name);
-      
+
       // 写入树结构
-      this.treeBuffer += `${prefix}${suffix}${entry.name}`;
+      this.treeBuffer += `${prefix}${suffix}${entry.name} `;
       if (entry.isDirectory()) {
         this.treeBuffer += '/';
       }
@@ -143,7 +153,7 @@ export class Scanner {
 
     // 5. 如果被裁剪，添加省略提示
     if (isPruned) {
-      this.treeBuffer += `${prefix}└── ... (共 ${totalCount} 项，剩余 ${totalCount - this.KEEP_DIR_ITEMS} 项已省略)\n`;
+      this.treeBuffer += `${prefix}└── ... (共 ${totalCount} 项，剩余 ${totalCount - this.KEEP_DIR_ITEMS} 项已省略) \n`;
     }
   }
 
@@ -155,12 +165,12 @@ export class Scanner {
     let header = '================================================================================\n';
     header += '项目扫描报告\n';
     header += '================================================================================\n';
-    header += `项目名称: ${projectName}\n`;
-    header += `上级目录: ${parentDir}\n`;
-    header += `项目类型: ${this.strategy.type}\n`;
-    header += `生成时间: ${date}\n`;
+    header += `项目名称: ${projectName} \n`;
+    header += `上级目录: ${parentDir} \n`;
+    header += `项目类型: ${this.strategy.type} \n`;
+    header += `生成时间: ${date} \n`;
     header += `\n`;
-    
+
     this.header = header;
   }
 
@@ -170,11 +180,13 @@ export class Scanner {
     const typeName = this.strategy.type;
 
     // 构造输出文件名: output/项目名-项目类型-上级目录名.txt
-    const fileName = `${projectName}-${typeName}-${parentDir}.txt`;
+    const fileName = `${projectName} -${typeName} -${parentDir}.txt`;
     const outputDir = path.join(process.cwd(), 'output');
     const outputPath = path.join(outputDir, fileName);
 
-    const finalData = this.header + this.treeBuffer + this.contentBuffer;
+    const finalData = this.header + this.treeBuffer +
+      (this.mediaBuffer ? '\n================================================================================\n媒体资源统计\n================================================================================\n' + this.mediaBuffer : '') +
+      this.contentBuffer;
 
     await fs.ensureDir(outputDir);
     await fs.writeFile(outputPath, finalData, 'utf-8');
