@@ -34,6 +34,7 @@ export default class BaseStrategy {
 
       // ❌ 新增：包管理锁文件 (非常重要，减少大量噪音)
       'package-lock.json',
+      '.npm-cache',
       'yarn.lock',
       'pnpm-lock.yaml',
       'bun.lockb',
