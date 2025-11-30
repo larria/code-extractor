@@ -69,7 +69,7 @@ export class MediaCollector {
           const dim = sizeOf(buffer);
           item.details = `${dim.width}x${dim.height}`;
         } catch (e) {
-          item.details = 'N/A';
+          item.details = '';
         }
       } else if (this.AUDIO_EXTS.has(ext)) {
         item.type = 'Audio';
@@ -93,22 +93,27 @@ export class MediaCollector {
     const displayItems = validItems.slice(0, limit);
     const isTruncated = totalCount > limit;
 
-    // 4. 生成输出字符串
-    let output = `\n----------- [媒体资源] ${relativeDirPath || '/'} -----------\n`;
+    // 4. 生成输出字符串 (Markdown 格式)
+    // 使用引用块 > 和 [CE] 标记
+    let output = `\n> 📂 [CE] 目录: ${relativeDirPath || '/'}\n`;
 
     if (isTruncated) {
-      output += `⚠️  共 ${totalCount} 项媒体资源，仅显示体积最大的前 ${limit} 项\n\n`;
+      output += `> (⚠️ 共 ${totalCount} 项资源，仅显示体积最大的前 ${limit} 项)\n`;
     } else {
-      output += `共 ${totalCount} 项媒体资源\n\n`;
+      // 可选：如果不需要显示总数，可以省略这行，保持简洁
+      // output += `> (共 ${totalCount} 项)\n`;
     }
 
-    displayItems.forEach((item, index) => {
+    displayItems.forEach((item) => {
       const sizeStr = this.formatSize(item.size);
-      let line = `${index + 1}. [${item.type}] ${item.name} - ${sizeStr}`;
+      
+      // 格式: - filename.png [Image, 12KB, 500x500]
+      let meta = `${item.type}, ${sizeStr}`;
       if (item.details) {
-        line += ` (尺寸: ${item.details})`;
+        meta += `, ${item.details}`;
       }
-      output += line + '\n';
+      
+      output += `- ${item.name} [${meta}]\n`;
     });
 
     return output;
