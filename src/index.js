@@ -1,13 +1,17 @@
-// src/index.js
 import path from 'path';
 import fs from 'fs-extra';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { Detector } from './core/Detector.js';
-// 暂时导入一个空的 Scanner，下一步我们再具体实现它
 import { Scanner } from './core/Scanner.js';
 
-export async function run(targetDir) {
+/**
+ * 主程序入口
+ * @param {string} targetDir 
+ * @param {string[]} extraExcludes 额外排除
+ * @param {string[]} extraIncludes ✨ 额外包含 (白名单)
+ */
+export async function run(targetDir, extraExcludes = [], extraIncludes = []) {
   const absolutePath = path.resolve(targetDir);
 
   if (!fs.existsSync(absolutePath)) {
@@ -16,6 +20,14 @@ export async function run(targetDir) {
   }
 
   console.log(chalk.blue(`正在分析项目: ${absolutePath} ...`));
+  
+  if (extraExcludes.length > 0) {
+    console.log(chalk.yellow(`已应用自定义排除规则: ${JSON.stringify(extraExcludes)}`));
+  }
+  // ✨ 提示包含规则
+  if (extraIncludes.length > 0) {
+    console.log(chalk.cyan(`已应用自定义包含规则 (白名单): ${JSON.stringify(extraIncludes)}`));
+  }
 
   // 1. 自动检测类型
   const detector = new Detector();
@@ -48,29 +60,23 @@ export async function run(targetDir) {
           'react',
           'flutter',
           'electron',
-          'android',
-          'ios',
-          'unknown' // 允许用户选未知，即全部扫描
+          'unknown'
         ]
       }
     ]);
     projectType = manualSelect.type;
 
-    // 如果用户手动切换了类型，我们需要重新获取对应的策略实例
-    // 简单起见，这里我们重新实例化一个 Detector 来查找对应的策略
-    // (实际工程中可以将 strategy map 暴露出来直接获取)
+    // 重新获取策略
     const allStrategies = detector.strategies;
     strategy = allStrategies.find(s => s.type === projectType);
 
-    // 如果手动选的类型没有对应的策略类（比如 'unknown' 或尚未实现的），则使用 BaseStrategy 兜底
     if (!strategy) {
       const { default: BaseStrategy } = await import('./strategies/BaseStrategy.js');
       strategy = new BaseStrategy();
-      // 强行覆盖 type 以便输出文件名正确
+      // 动态修改 type 属性用于展示
       Object.defineProperty(strategy, 'type', { get: () => projectType });
     }
   } else if (!strategy) {
-    // 如果用户确认了自动检测结果（比如 unknown），但 strategy 为空，也需要兜底
     const { default: BaseStrategy } = await import('./strategies/BaseStrategy.js');
     strategy = new BaseStrategy();
     if (projectType === 'unknown') {
@@ -80,7 +86,7 @@ export async function run(targetDir) {
 
   console.log(chalk.blue(`\n准备开始扫描 (${projectType})...`));
 
-  // 4. 启动扫描 (Scanner 部分将在下一步详细实现)
-  const scanner = new Scanner(absolutePath, strategy);
+  // 4. 启动扫描 (传入 extraIncludes)
+  const scanner = new Scanner(absolutePath, strategy, extraExcludes, extraIncludes);
   await scanner.run();
 }
