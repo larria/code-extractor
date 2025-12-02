@@ -20,7 +20,7 @@ export async function run(targetDir, extraExcludes = [], extraIncludes = []) {
   }
 
   console.log(chalk.blue(`正在分析项目: ${absolutePath} ...`));
-  
+
   if (extraExcludes.length > 0) {
     console.log(chalk.yellow(`已应用自定义排除规则: ${JSON.stringify(extraExcludes)}`));
   }

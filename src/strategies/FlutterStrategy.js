@@ -13,7 +13,7 @@ export default class FlutterStrategy extends BaseStrategy {
       '.dart_tool',
       '.idea',
       'build',
-      
+
       // 锁文件 (通常分析业务逻辑不需要具体的包版本锁定信息)
       'pubspec.lock',
 
@@ -25,10 +25,11 @@ export default class FlutterStrategy extends BaseStrategy {
       'macos',
       'windows',
       'linux',
-      
+
       // 其他杂项
       'coverage',
-      'doc' // 文档通常也不需要提取
+      'doc', // 文档通常也不需要提取
+      '*.g.dart' // 忽略生成的 dart 文件
     ];
   }
 }
