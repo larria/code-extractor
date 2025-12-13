@@ -1,5 +1,17 @@
 [
   {
+    "path": "/Users/larkin/WorkSpace/github/MagicCardByFlutter",
+    "config": {
+      "type": "flutter",
+      "extraExcludes": [
+        "script",
+        "test"
+      ],
+      "extraIncludes": []
+    },
+    "lastUsed": "2025-12-13T13:10:07.330Z"
+  },
+  {
     "path": "/Users/larkin/WorkSpace/github/piggymicharacter",
     "config": {
       "type": "vue",

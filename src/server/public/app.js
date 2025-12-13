@@ -164,8 +164,8 @@ async function handleScan() {
     if (!pathVal) return;
 
     const type = els.projectType.value;
-    const excludes = els.extraExcludes.value.split(',').map(s => s.trim()).filter(Boolean);
-    const includes = els.extraIncludes.value.split(',').map(s => s.trim()).filter(Boolean);
+    const excludes = els.extraExcludes.value.split(/[,\s]+/).map(s => s.trim()).filter(Boolean);
+    const includes = els.extraIncludes.value.split(/[,\s]+/).map(s => s.trim()).filter(Boolean);
 
     const config = {
         type,

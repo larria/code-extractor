@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="app-container">
         <!-- Sidebar: History -->
@@ -39,7 +41,7 @@
 
             <div class="card config-card" id="config-section" style="display: none;">
                 <h3>⚙️ Configuration</h3>
-                
+
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Detected Type</label>
@@ -57,12 +59,12 @@
 
                 <div class="form-group">
                     <label>Extra Excludes (Optional)</label>
-                    <input type="text" id="extra-excludes" placeholder="e.g. test, *.spec.js (comma separated)">
+                    <input type="text" id="extra-excludes" placeholder="e.g. test, *.spec.js (comma or space separated)">
                 </div>
 
                 <div class="form-group">
                     <label>Extra Includes (Force Include)</label>
-                    <input type="text" id="extra-includes" placeholder="e.g. bin, public (comma separated)">
+                    <input type="text" id="extra-includes" placeholder="e.g. bin, public (comma or space separated)">
                 </div>
 
                 <div class="actions">
@@ -75,10 +77,10 @@
                 <p>Output saved to:</p>
                 <code id="output-path"></code>
                 <div class="actions">
-                     <button onclick="document.getElementById('result-section').style.display='none'" class="btn btn-secondary">Close</button>
+                    <button onclick="document.getElementById('result-section').style.display='none'" class="btn btn-secondary">Close</button>
                 </div>
             </div>
-            
+
             <div id="loading-overlay" class="loading-overlay" style="display: none;">
                 <div class="spinner"></div>
                 <p id="loading-text">Processing...</p>
@@ -87,4 +89,5 @@
     </div>
     <script src="app.js"></script>
 </body>
+
 </html>
