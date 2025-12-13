@@ -62,9 +62,20 @@ npm link
 # 扫描当前目录下的 demo 项目
 code-extractor ./demo-project
 
+
 # 或者使用绝对路径
 code-extractor /Users/username/workspace/my-app
 ```
+
+### 可视化 Web 界面 (✨ New)
+
+通过图形化界面进行更直观的操作，支持拖拽识别路径和历史记录功能。
+
+```bash
+code-extractor ui
+```
+启动后浏览器将自动打开 `http://localhost:3000`。
+
 
 ### 进阶选项
 

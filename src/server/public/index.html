@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Extractor GUI</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar: History -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>📜 History</h2>
+            </div>
+            <div id="history-list" class="history-list">
+                <!-- History items will be injected here -->
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header>
+                <h1>🛡️ Code Extractor</h1>
+                <p>Flat pack your codebase for LLMs</p>
+            </header>
+
+            <div class="card" id="drop-zone">
+                <div class="input-group">
+                    <label for="project-path">项目路径 (Project Path)</label>
+                    <div class="path-input-wrapper">
+                        <input type="text" id="project-path" placeholder="/Users/username/projects/my-app" autocomplete="off">
+                        <button id="detect-btn" class="btn btn-primary">Detect</button>
+                    </div>
+                    <p class="hint">拖拽文件夹到此处也可识别路径 (Drag & Drop)</p>
+                </div>
+            </div>
+
+            <div class="card config-card" id="config-section" style="display: none;">
+                <h3>⚙️ Configuration</h3>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Detected Type</label>
+                        <select id="project-type">
+                            <option value="unknown">Unknown</option>
+                            <option value="vue">Vue</option>
+                            <option value="react">React</option>
+                            <option value="flutter">Flutter</option>
+                            <option value="electron">Electron</option>
+                            <option value="nodejs">Node.js</option>
+                            <option value="generic-web">Generic Web</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Extra Excludes (Optional)</label>
+                    <input type="text" id="extra-excludes" placeholder="e.g. test, *.spec.js (comma separated)">
+                </div>
+
+                <div class="form-group">
+                    <label>Extra Includes (Force Include)</label>
+                    <input type="text" id="extra-includes" placeholder="e.g. bin, public (comma separated)">
+                </div>
+
+                <div class="actions">
+                    <button id="scan-btn" class="btn btn-success">🚀 Start Scan</button>
+                </div>
+            </div>
+
+            <div id="result-section" class="card result-card" style="display: none;">
+                <h3>✅ Scan Complete</h3>
+                <p>Output saved to:</p>
+                <code id="output-path"></code>
+                <div class="actions">
+                     <button onclick="document.getElementById('result-section').style.display='none'" class="btn btn-secondary">Close</button>
+                </div>
+            </div>
+            
+            <div id="loading-overlay" class="loading-overlay" style="display: none;">
+                <div class="spinner"></div>
+                <p id="loading-text">Processing...</p>
+            </div>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
