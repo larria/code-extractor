@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs'; // ⚠️ 注意：合并后的代码需要引入 fs 模块
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { detectProject, scanProject } from './core/Runner.js';
@@ -12,6 +13,13 @@ import { detectProject, scanProject } from './core/Runner.js';
 export async function run(targetDir, extraExcludes = [], extraIncludes = []) {
   try {
     const absolutePath = path.resolve(targetDir);
+
+    // [新增] 来自 Incoming 分支的安全检查，非常建议保留
+    if (!fs.existsSync(absolutePath)) {
+      console.error(chalk.red(`错误: 目录不存在 -> ${absolutePath}`));
+      process.exit(1);
+    }
+
     console.log(chalk.blue(`正在分析项目: ${absolutePath} ...`));
 
     if (extraExcludes.length > 0) {
@@ -21,7 +29,7 @@ export async function run(targetDir, extraExcludes = [], extraIncludes = []) {
       console.log(chalk.cyan(`已应用自定义包含规则 (白名单): ${JSON.stringify(extraIncludes)}`));
     }
 
-    // 1. 自动检测类型
+    // 1. 自动检测类型 (保留 HEAD 逻辑，因为与 imports 中的 detectProject 匹配)
     const { type: detectedType } = await detectProject(absolutePath);
     console.log(chalk.green(`自动识别结果: [ ${detectedType.toUpperCase()} ]`));
 
